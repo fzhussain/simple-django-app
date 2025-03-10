@@ -1,0 +1,43 @@
+# Build stage
+FROM ubuntu:22.04 AS builder
+
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY requirements.txt /app/
+
+# Install Python and dependencies
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip python3-venv && \
+    python3 -m venv /app/venv && \
+    . /app/venv/bin/activate && \
+    pip install --no-cache-dir -r requirements.txt && \
+    # Find the Python version to use in paths
+    echo $(python3 --version | cut -d " " -f 2 | cut -d "." -f 1-2) > /tmp/python_version
+
+# Copy application code
+COPY . /app/
+
+# Install all dependencies into a site-packages directory that we'll copy to the distroless image
+RUN PYTHON_VERSION=$(cat /tmp/python_version) && \
+    mkdir -p /app/site-packages && \
+    cp -r /app/venv/lib/python${PYTHON_VERSION}/site-packages/* /app/site-packages/
+
+# Final stage using distroless Python image
+FROM gcr.io/distroless/python3
+
+WORKDIR /app
+
+# Set up Python path to find packages
+ENV PYTHONPATH=/app/site-packages
+
+# Copy site-packages and application code
+COPY --from=builder /app/site-packages /app/site-packages
+COPY --from=builder /app /app
+
+# Expose port
+EXPOSE 8000
+
+# Run the Django application
+# Note: No shell in distroless, so we use the array form of ENTRYPOINT
+ENTRYPOINT ["python3", "/app/manage.py", "runserver", "0.0.0.0:8000"]
