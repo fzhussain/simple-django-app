@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: faraz-ingress-example
+spec:
+  rules:
+  - host: "faraz-simple-resume.com"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: faraz-django-app-service
+            port:
+              number: 80
