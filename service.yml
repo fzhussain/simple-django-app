@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: faraz-django-app-service
+spec:
+  type: NodePort
+  selector:
+    # Service will be looking at pods using selectors
+    # Always pick from the template > metadata > label > app which is for Pods as we might have different labels for deployments
+    app: faraz-django-app-label 
+  ports:
+    - port: 80
+    # Target port is the port where your application is running
+      targetPort: 8000
+      nodePort: 30007

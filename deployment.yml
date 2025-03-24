@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: faraz-django-app
+  labels:
+    app: faraz-django-app-label
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: faraz-django-app-label
+  template:
+    metadata:
+      labels:
+        app: faraz-django-app-label
+    spec:
+      containers:
+      - name: faraz-django-app-container-k8s
+        image: fzhussain/django-simple-resume-app-testing-k8s:v1
+        ports:
+        - containerPort: 8000
